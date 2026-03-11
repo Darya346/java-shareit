@@ -44,9 +44,9 @@ public class ItemRepositoryImpl implements ItemRepository {
         String lowerCaseText = text.toLowerCase();
 
         return items.values().stream()
-                .filter(Item::getAvailable) // Только доступные вещи
-                .filter(item -> item.getName().toLowerCase().contains(lowerCaseText) ||
-                        item.getDescription().toLowerCase().contains(lowerCaseText))
+                .filter(item -> Boolean.TRUE.equals(item.getAvailable())) // Безопасная проверка на true
+                .filter(item -> (item.getName() != null && item.getName().toLowerCase().contains(lowerCaseText)) ||
+                        (item.getDescription() != null && item.getDescription().toLowerCase().contains(lowerCaseText)))
                 .collect(Collectors.toList());
     }
 }
