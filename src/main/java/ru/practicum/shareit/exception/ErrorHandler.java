@@ -7,6 +7,7 @@ import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.Map;
 
@@ -40,5 +41,11 @@ public class ErrorHandler {
     public Map<String, String> handleThrowable(final Throwable e) {
         log.error("500 Internal Server Error: ", e);
         return Map.of("error", "Произошла непредвиденная ошибка");
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, String> handleNoResourceFound(final NoResourceFoundException e) {
+        return Map.of("error", "Путь не найден: " + e.getResourcePath());
     }
 }
