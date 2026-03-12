@@ -1,19 +1,23 @@
 package ru.practicum.shareit.item.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-
+import lombok.*;
+import lombok.experimental.FieldDefaults; // Нужно импортировать это
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class ItemDto {
-    private Long id;
+    Long id;
+
     @NotBlank(message = "Название не может быть пустым")
-    private String name;
+    String name;
+
     @NotBlank(message = "Описание не может быть пустым")
-    private String description;
+    String description;
+
     @NotNull(message = "Статус доступности обязателен")
-    private Boolean available;
+    Boolean available;
 }
