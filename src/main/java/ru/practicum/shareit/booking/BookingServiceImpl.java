@@ -60,8 +60,7 @@ public class BookingServiceImpl implements BookingService {
     public BookingResponseDto approve(Long userId, Long bookingId, boolean approved) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
-
-        // ЗАМЕНЯЕМ NotFoundException НА ValidationException ЗДЕСЬ:
+        
         if (!booking.getItem().getOwner().getId().equals(userId)) {
             throw new ValidationException("Только владелец может подтвердить бронирование");
         }
