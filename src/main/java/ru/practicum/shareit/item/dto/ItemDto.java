@@ -1,9 +1,12 @@
 package ru.practicum.shareit.item.dto;
 
-import lombok.*;
-import lombok.experimental.FieldDefaults; // Нужно импортировать это
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -11,13 +14,21 @@ import jakarta.validation.constraints.NotNull;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ItemDto {
     Long id;
-
-    @NotBlank(message = "Название не может быть пустым")
+    @NotBlank
     String name;
-
-    @NotBlank(message = "Описание не может быть пустым")
+    @NotBlank
     String description;
-
-    @NotNull(message = "Статус доступности обязателен")
+    @NotNull
     Boolean available;
+    BookingShortDto lastBooking;
+    BookingShortDto nextBooking;
+    List<CommentDto> comments;
+
+    @Data
+    @AllArgsConstructor
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class BookingShortDto {
+        Long id;
+        Long bookerId;
+    }
 }
