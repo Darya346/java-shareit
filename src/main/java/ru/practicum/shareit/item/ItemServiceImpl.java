@@ -16,7 +16,6 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
-
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -58,10 +57,8 @@ public class ItemServiceImpl implements ItemService {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Item not found"));
         ItemDto dto = ItemMapper.toItemDto(item);
-
         dto.setComments(commentRepository.findAllByItemId(itemId).stream()
                 .map(CommentMapper::toCommentDto).collect(Collectors.toList()));
-
         if (item.getOwner().getId().equals(userId)) {
             setBookings(dto, bookingRepository.findAllByItemIdOrderByStartAsc(itemId));
         }
@@ -79,7 +76,7 @@ public class ItemServiceImpl implements ItemService {
             return dto;
         }).sorted(Comparator.comparing(ItemDto::getId)).collect(Collectors.toList());
     }
-    
+
     @Override
     public List<ItemDto> search(String text) {
         if (text == null || text.isBlank()) {
@@ -94,21 +91,17 @@ public class ItemServiceImpl implements ItemService {
     public CommentDto createComment(Long userId, Long itemId, CommentDto commentDto) {
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
         Item item = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found"));
-
         List<Booking> userBookings = bookingRepository.findAllPastByBookerId(userId, LocalDateTime.now());
         boolean hasFinishedBooking = userBookings.stream()
                 .anyMatch(b -> b.getItem().getId().equals(itemId) && b.getStatus() == Status.APPROVED);
-
         if (!hasFinishedBooking) {
             throw new ValidationException("No finished bookings for this item");
         }
-
         Comment comment = new Comment();
         comment.setText(commentDto.getText());
         comment.setItem(item);
         comment.setAuthor(user);
         comment.setCreated(LocalDateTime.now());
-
         return CommentMapper.toCommentDto(commentRepository.save(comment));
     }
 
@@ -120,7 +113,6 @@ public class ItemServiceImpl implements ItemService {
         Booking next = bookings.stream()
                 .filter(b -> b.getStart().isAfter(now))
                 .findFirst().orElse(null);
-
         if (last != null) {
             dto.setLastBooking(new ItemDto.BookingShortDto(last.getId(), last.getBooker().getId()));
         }
