@@ -33,11 +33,11 @@ public class Item {
     @Column(nullable = false)
     String description;
 
-    @Column(name = "is_available", nullable = false) // Маппинг на твой SQL
+    @Column(name = "is_available", nullable = false)
     Boolean available;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner_id", nullable = false) // Маппинг на твой SQL
+    @JoinColumn(name = "owner_id", nullable = false)
     User owner;
 
     @Column(name = "request_id")
