@@ -110,7 +110,7 @@ public class ItemServiceImpl implements ItemService {
 
         return CommentMapper.toCommentDto(commentRepository.save(comment));
     }
-
+    
     private void setBookings(ItemDto dto, List<Booking> bookings) {
         LocalDateTime now = LocalDateTime.now();
         Booking last = bookings.stream()
