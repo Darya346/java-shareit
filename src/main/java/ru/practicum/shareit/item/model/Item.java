@@ -17,28 +17,27 @@ import lombok.experimental.FieldDefaults;
 import ru.practicum.shareit.user.User;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
 @Table(name = "items")
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Item {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @Column(name = "name", nullable = false)
+    @Column(nullable = false)
     String name;
 
-    @Column(name = "description", nullable = false)
+    @Column(nullable = false)
     String description;
 
-    @Column(name = "is_available", nullable = false)
+    @Column(name = "is_available", nullable = false) // Маппинг на твой SQL
     Boolean available;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner_id", nullable = false)
+    @JoinColumn(name = "owner_id", nullable = false) // Маппинг на твой SQL
     User owner;
 
     @Column(name = "request_id")
