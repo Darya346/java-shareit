@@ -79,7 +79,7 @@ public class ItemServiceImpl implements ItemService {
             return dto;
         }).sorted(Comparator.comparing(ItemDto::getId)).collect(Collectors.toList());
     }
-
+    
     @Override
     public List<ItemDto> search(String text) {
         if (text == null || text.isBlank()) {
