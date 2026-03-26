@@ -82,7 +82,9 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> search(String text) {
-        if (text.isBlank()) return Collections.emptyList();
+        if (text == null || text.isBlank()) {
+            return Collections.emptyList();
+        }
         return itemRepository.searchByText(text).stream()
                 .map(ItemMapper::toItemDto).collect(Collectors.toList());
     }
@@ -119,7 +121,11 @@ public class ItemServiceImpl implements ItemService {
                 .filter(b -> b.getStart().isAfter(now))
                 .findFirst().orElse(null);
 
-        if (last != null) dto.setLastBooking(new ItemDto.BookingShortDto(last.getId(), last.getBooker().getId()));
-        if (next != null) dto.setNextBooking(new ItemDto.BookingShortDto(next.getId(), next.getBooker().getId()));
+        if (last != null) {
+            dto.setLastBooking(new ItemDto.BookingShortDto(last.getId(), last.getBooker().getId()));
+        }
+        if (next != null) {
+            dto.setNextBooking(new ItemDto.BookingShortDto(next.getId(), next.getBooker().getId()));
+        }
     }
 }
