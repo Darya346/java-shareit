@@ -1,7 +1,6 @@
 package ru.practicum.shareit.booking;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 
@@ -14,27 +13,21 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> findAllByBookerIdAndStatusOrderByStartDesc(Long bookerId, Status status);
 
-    @Query("select b from Booking b where b.booker.id = ?1 and b.start <= ?2 and b.end >= ?2 order by b.start desc")
-    List<Booking> findAllCurrentByBookerId(Long bookerId, LocalDateTime now);
+    List<Booking> findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(Long bookerId, LocalDateTime nowStart, LocalDateTime nowEnd);
 
-    @Query("select b from Booking b where b.booker.id = ?1 and b.end < ?2 order by b.start desc")
-    List<Booking> findAllPastByBookerId(Long bookerId, LocalDateTime now);
+    List<Booking> findAllByBookerIdAndEndBeforeOrderByStartDesc(Long bookerId, LocalDateTime now);
 
-    @Query("select b from Booking b where b.booker.id = ?1 and b.start > ?2 order by b.start desc")
-    List<Booking> findAllFutureByBookerId(Long bookerId, LocalDateTime now);
+    List<Booking> findAllByBookerIdAndStartAfterOrderByStartDesc(Long bookerId, LocalDateTime now);
 
     List<Booking> findAllByItemOwnerIdOrderByStartDesc(Long ownerId);
 
     List<Booking> findAllByItemOwnerIdAndStatusOrderByStartDesc(Long ownerId, Status status);
 
-    @Query("select b from Booking b where b.item.owner.id = ?1 and b.start <= ?2 and b.end >= ?2 order by b.start desc")
-    List<Booking> findAllCurrentByOwnerId(Long ownerId, LocalDateTime now);
+    List<Booking> findAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(Long ownerId, LocalDateTime nowStart, LocalDateTime nowEnd);
 
-    @Query("select b from Booking b where b.item.owner.id = ?1 and b.end < ?2 order by b.start desc")
-    List<Booking> findAllPastByOwnerId(Long ownerId, LocalDateTime now);
+    List<Booking> findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(Long ownerId, LocalDateTime now);
 
-    @Query("select b from Booking b where b.item.owner.id = ?1 and b.start > ?2 order by b.start desc")
-    List<Booking> findAllFutureByOwnerId(Long ownerId, LocalDateTime now);
+    List<Booking> findAllByItemOwnerIdAndStartAfterOrderByStartDesc(Long ownerId, LocalDateTime now);
 
     List<Booking> findAllByItemIdOrderByStartAsc(Long itemId);
 }

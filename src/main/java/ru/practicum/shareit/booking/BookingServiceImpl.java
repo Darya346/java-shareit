@@ -30,19 +30,13 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     @Override
     public BookingResponseDto create(Long userId, BookingDto bookingDto) {
-        User booker = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        Item item = itemRepository.findById(bookingDto.getItemId())
-                .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
+        User booker = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
+        Item item = itemRepository.findById(bookingDto.getItemId()).orElseThrow(() -> new NotFoundException("Item not found"));
 
-        if (!item.getAvailable()) {
-            throw new ValidationException("Вещь недоступна для бронирования");
-        }
-        if (item.getOwner().getId().equals(userId)) {
-            throw new NotFoundException("Владелец не может забронировать свою вещь");
-        }
+        if (!item.getAvailable()) throw new ValidationException("Not available");
+        if (item.getOwner().getId().equals(userId)) throw new NotFoundException("Owner cannot book");
         if (bookingDto.getEnd().isBefore(bookingDto.getStart()) || bookingDto.getEnd().equals(bookingDto.getStart())) {
-            throw new ValidationException("Некорректные даты бронирования");
+            throw new ValidationException("Wrong dates");
         }
 
         Booking booking = new Booking();
@@ -58,16 +52,9 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     @Override
     public BookingResponseDto approve(Long userId, Long bookingId, boolean approved) {
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
-
-        if (!booking.getItem().getOwner().getId().equals(userId)) {
-            throw new ValidationException("Только владелец может подтвердить бронирование");
-        }
-
-        if (booking.getStatus() != Status.WAITING) {
-            throw new ValidationException("Статус уже изменен");
-        }
+        Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new NotFoundException("Not found"));
+        if (!booking.getItem().getOwner().getId().equals(userId)) throw new ValidationException("Not an owner");
+        if (booking.getStatus() != Status.WAITING) throw new ValidationException("Already changed");
 
         booking.setStatus(approved ? Status.APPROVED : Status.REJECTED);
         return BookingMapper.toBookingResponse(bookingRepository.save(booking));
@@ -75,77 +62,46 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingResponseDto getById(Long userId, Long bookingId) {
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
-
+        Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new NotFoundException("Not found"));
         if (!booking.getBooker().getId().equals(userId) && !booking.getItem().getOwner().getId().equals(userId)) {
-            throw new NotFoundException("Нет прав для просмотра этого бронирования");
+            throw new NotFoundException("No access");
         }
-
         return BookingMapper.toBookingResponse(booking);
     }
 
     @Override
     public List<BookingResponseDto> getAllByBooker(Long userId, String state) {
-        userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
         LocalDateTime now = LocalDateTime.now();
         List<Booking> bookings;
 
         switch (state.toUpperCase()) {
-            case "ALL":
-                bookings = bookingRepository.findAllByBookerIdOrderByStartDesc(userId);
-                break;
-            case "CURRENT":
-                bookings = bookingRepository.findAllCurrentByBookerId(userId, now);
-                break;
-            case "PAST":
-                bookings = bookingRepository.findAllPastByBookerId(userId, now);
-                break;
-            case "FUTURE":
-                bookings = bookingRepository.findAllFutureByBookerId(userId, now);
-                break;
-            case "WAITING":
-                bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.WAITING);
-                break;
-            case "REJECTED":
-                bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.REJECTED);
-                break;
-            default:
-                throw new ValidationException("Unknown state: " + state);
+            case "ALL": bookings = bookingRepository.findAllByBookerIdOrderByStartDesc(userId); break;
+            case "CURRENT": bookings = bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId, now, now); break;
+            case "PAST": bookings = bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, now); break;
+            case "FUTURE": bookings = bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(userId, now); break;
+            case "WAITING": bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.WAITING); break;
+            case "REJECTED": bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.REJECTED); break;
+            default: throw new ValidationException("Unknown state: " + state);
         }
-
         return bookings.stream().map(BookingMapper::toBookingResponse).collect(Collectors.toList());
     }
 
     @Override
     public List<BookingResponseDto> getAllByOwner(Long userId, String state) {
-        userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
         LocalDateTime now = LocalDateTime.now();
         List<Booking> bookings;
 
         switch (state.toUpperCase()) {
-            case "ALL":
-                bookings = bookingRepository.findAllByItemOwnerIdOrderByStartDesc(userId);
-                break;
-            case "CURRENT":
-                bookings = bookingRepository.findAllCurrentByOwnerId(userId, now);
-                break;
-            case "PAST":
-                bookings = bookingRepository.findAllPastByOwnerId(userId, now);
-                break;
-            case "FUTURE":
-                bookings = bookingRepository.findAllFutureByOwnerId(userId, now);
-                break;
-            case "WAITING":
-                bookings = bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.WAITING);
-                break;
-            case "REJECTED":
-                bookings = bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.REJECTED);
-                break;
-            default:
-                throw new ValidationException("Unknown state: " + state);
+            case "ALL": bookings = bookingRepository.findAllByItemOwnerIdOrderByStartDesc(userId); break;
+            case "CURRENT": bookings = bookingRepository.findAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId, now, now); break;
+            case "PAST": bookings = bookingRepository.findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(userId, now); break;
+            case "FUTURE": bookings = bookingRepository.findAllByItemOwnerIdAndStartAfterOrderByStartDesc(userId, now); break;
+            case "WAITING": bookings = bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.WAITING); break;
+            case "REJECTED": bookings = bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.REJECTED); break;
+            default: throw new ValidationException("Unknown state: " + state);
         }
-
         return bookings.stream().map(BookingMapper::toBookingResponse).collect(Collectors.toList());
     }
 }

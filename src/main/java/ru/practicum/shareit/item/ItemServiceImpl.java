@@ -91,17 +91,23 @@ public class ItemServiceImpl implements ItemService {
     public CommentDto createComment(Long userId, Long itemId, CommentDto commentDto) {
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
         Item item = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found"));
-        List<Booking> userBookings = bookingRepository.findAllPastByBookerId(userId, LocalDateTime.now());
+
+        // Исправленный вызов метода:
+        List<Booking> userBookings = bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, LocalDateTime.now());
+
         boolean hasFinishedBooking = userBookings.stream()
                 .anyMatch(b -> b.getItem().getId().equals(itemId) && b.getStatus() == Status.APPROVED);
+
         if (!hasFinishedBooking) {
             throw new ValidationException("No finished bookings for this item");
         }
+
         Comment comment = new Comment();
         comment.setText(commentDto.getText());
         comment.setItem(item);
         comment.setAuthor(user);
         comment.setCreated(LocalDateTime.now());
+
         return CommentMapper.toCommentDto(commentRepository.save(comment));
     }
 
