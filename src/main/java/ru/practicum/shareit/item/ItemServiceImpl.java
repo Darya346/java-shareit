@@ -55,7 +55,7 @@ public class ItemServiceImpl implements ItemService {
         dto.setComments(commentRepository.findAllByItemId(itemId).stream()
                 .map(CommentMapper::toCommentDto).collect(Collectors.toList()));
         if (item.getOwner().getId().equals(userId)) {
-            setBookings(dto, bookingRepository.findAllByItemIdOrderByStartAsc(itemId));
+            setBookings(dto, bookingRepository.findItemBookings(itemId));
         }
         return dto;
     }
@@ -66,7 +66,7 @@ public class ItemServiceImpl implements ItemService {
             ItemDto dto = ItemMapper.toItemDto(item);
             dto.setComments(commentRepository.findAllByItemId(item.getId()).stream()
                     .map(CommentMapper::toCommentDto).collect(Collectors.toList()));
-            setBookings(dto, bookingRepository.findAllByItemIdOrderByStartAsc(item.getId()));
+            setBookings(dto, bookingRepository.findItemBookings(item.getId()));
             return dto;
         }).sorted(Comparator.comparing(ItemDto::getId)).collect(Collectors.toList());
     }
@@ -83,7 +83,7 @@ public class ItemServiceImpl implements ItemService {
     public CommentDto createComment(Long userId, Long itemId, CommentDto commentDto) {
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
         Item item = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found"));
-        List<Booking> userBookings = bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, LocalDateTime.now());
+        List<Booking> userBookings = bookingRepository.findUserPast(userId, LocalDateTime.now());
         boolean hasFinishedBooking = userBookings.stream()
                 .anyMatch(b -> b.getItem().getId().equals(itemId) && b.getStatus() == Status.APPROVED);
         if (!hasFinishedBooking) throw new ValidationException("No finished bookings");

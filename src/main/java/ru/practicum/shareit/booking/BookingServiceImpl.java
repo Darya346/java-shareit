@@ -14,7 +14,6 @@ import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,20 +31,17 @@ public class BookingServiceImpl implements BookingService {
     public BookingResponseDto create(Long userId, BookingDto bookingDto) {
         User booker = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
         Item item = itemRepository.findById(bookingDto.getItemId()).orElseThrow(() -> new NotFoundException("Item not found"));
-
         if (!item.getAvailable()) throw new ValidationException("Not available");
         if (item.getOwner().getId().equals(userId)) throw new NotFoundException("Owner cannot book");
         if (bookingDto.getEnd().isBefore(bookingDto.getStart()) || bookingDto.getEnd().equals(bookingDto.getStart())) {
             throw new ValidationException("Wrong dates");
         }
-
         Booking booking = new Booking();
         booking.setStart(bookingDto.getStart());
         booking.setEnd(bookingDto.getEnd());
         booking.setItem(item);
         booking.setBooker(booker);
         booking.setStatus(Status.WAITING);
-
         return BookingMapper.toBookingResponse(bookingRepository.save(booking));
     }
 
@@ -55,7 +51,6 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new NotFoundException("Not found"));
         if (!booking.getItem().getOwner().getId().equals(userId)) throw new ValidationException("Not an owner");
         if (booking.getStatus() != Status.WAITING) throw new ValidationException("Already changed");
-
         booking.setStatus(approved ? Status.APPROVED : Status.REJECTED);
         return BookingMapper.toBookingResponse(bookingRepository.save(booking));
     }
@@ -74,14 +69,13 @@ public class BookingServiceImpl implements BookingService {
         userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
         LocalDateTime now = LocalDateTime.now();
         List<Booking> bookings;
-
         switch (state.toUpperCase()) {
-            case "ALL": bookings = bookingRepository.findAllByBookerIdOrderByStartDesc(userId); break;
-            case "CURRENT": bookings = bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId, now, now); break;
-            case "PAST": bookings = bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, now); break;
-            case "FUTURE": bookings = bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(userId, now); break;
-            case "WAITING": bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.WAITING); break;
-            case "REJECTED": bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.REJECTED); break;
+            case "ALL": bookings = bookingRepository.findUserBookings(userId); break;
+            case "CURRENT": bookings = bookingRepository.findUserCurrent(userId, now); break;
+            case "PAST": bookings = bookingRepository.findUserPast(userId, now); break;
+            case "FUTURE": bookings = bookingRepository.findUserFuture(userId, now); break;
+            case "WAITING": bookings = bookingRepository.findUserStatus(userId, Status.WAITING); break;
+            case "REJECTED": bookings = bookingRepository.findUserStatus(userId, Status.REJECTED); break;
             default: throw new ValidationException("Unknown state: " + state);
         }
         return bookings.stream().map(BookingMapper::toBookingResponse).collect(Collectors.toList());
@@ -92,14 +86,13 @@ public class BookingServiceImpl implements BookingService {
         userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
         LocalDateTime now = LocalDateTime.now();
         List<Booking> bookings;
-
         switch (state.toUpperCase()) {
-            case "ALL": bookings = bookingRepository.findAllByItemOwnerIdOrderByStartDesc(userId); break;
-            case "CURRENT": bookings = bookingRepository.findAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId, now, now); break;
-            case "PAST": bookings = bookingRepository.findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(userId, now); break;
-            case "FUTURE": bookings = bookingRepository.findAllByItemOwnerIdAndStartAfterOrderByStartDesc(userId, now); break;
-            case "WAITING": bookings = bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.WAITING); break;
-            case "REJECTED": bookings = bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.REJECTED); break;
+            case "ALL": bookings = bookingRepository.findOwnerBookings(userId); break;
+            case "CURRENT": bookings = bookingRepository.findOwnerCurrent(userId, now); break;
+            case "PAST": bookings = bookingRepository.findOwnerPast(userId, now); break;
+            case "FUTURE": bookings = bookingRepository.findOwnerFuture(userId, now); break;
+            case "WAITING": bookings = bookingRepository.findOwnerStatus(userId, Status.WAITING); break;
+            case "REJECTED": bookings = bookingRepository.findOwnerStatus(userId, Status.REJECTED); break;
             default: throw new ValidationException("Unknown state: " + state);
         }
         return bookings.stream().map(BookingMapper::toBookingResponse).collect(Collectors.toList());
