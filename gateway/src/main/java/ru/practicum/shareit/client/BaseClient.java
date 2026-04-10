@@ -14,23 +14,51 @@ public class BaseClient {
         this.rest = rest;
     }
 
-    protected ResponseEntity<Object> get(String path, Long userId) {
-        return get(path, userId, null);
+    protected ResponseEntity<Object> get(String path) {
+        return makeAndSendRequest(HttpMethod.GET, path, null, null, null);
+    }
+
+    protected ResponseEntity<Object> get(String path, long userId) {
+        return makeAndSendRequest(HttpMethod.GET, path, userId, null, null);
     }
 
     protected ResponseEntity<Object> get(String path, Long userId, @Nullable Map<String, Object> parameters) {
         return makeAndSendRequest(HttpMethod.GET, path, userId, parameters, null);
     }
 
-    protected <T> ResponseEntity<Object> post(String path, Long userId, T body) {
+    protected <T> ResponseEntity<Object> post(String path, T body) {
+        return makeAndSendRequest(HttpMethod.POST, path, null, null, body);
+    }
+
+    protected <T> ResponseEntity<Object> post(String path, long userId, T body) {
         return makeAndSendRequest(HttpMethod.POST, path, userId, null, body);
     }
 
-    protected <T> ResponseEntity<Object> patch(String path, Long userId, T body) {
+    protected <T> ResponseEntity<Object> post(String path, Long userId, @Nullable Map<String, Object> parameters, T body) {
+        return makeAndSendRequest(HttpMethod.POST, path, userId, parameters, body);
+    }
+
+    protected <T> ResponseEntity<Object> patch(String path, T body) {
+        return makeAndSendRequest(HttpMethod.PATCH, path, null, null, body);
+    }
+
+    protected ResponseEntity<Object> patch(String path, long userId) {
+        return makeAndSendRequest(HttpMethod.PATCH, path, userId, null, null);
+    }
+
+    protected <T> ResponseEntity<Object> patch(String path, long userId, T body) {
         return makeAndSendRequest(HttpMethod.PATCH, path, userId, null, body);
     }
 
-    protected ResponseEntity<Object> delete(String path, Long userId) {
+    protected <T> ResponseEntity<Object> patch(String path, Long userId, @Nullable Map<String, Object> parameters, T body) {
+        return makeAndSendRequest(HttpMethod.PATCH, path, userId, parameters, body);
+    }
+
+    protected ResponseEntity<Object> delete(String path) {
+        return makeAndSendRequest(HttpMethod.DELETE, path, null, null, null);
+    }
+
+    protected ResponseEntity<Object> delete(String path, long userId) {
         return makeAndSendRequest(HttpMethod.DELETE, path, userId, null, null);
     }
 
@@ -53,7 +81,9 @@ public class BaseClient {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-        if (userId != null) headers.set("X-Sharer-User-Id", String.valueOf(userId));
+        if (userId != null) {
+            headers.set("X-Sharer-User-Id", String.valueOf(userId));
+        }
         return headers;
     }
 }
