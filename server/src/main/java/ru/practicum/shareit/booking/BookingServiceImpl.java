@@ -10,7 +10,6 @@ import ru.practicum.shareit.booking.dto.BookingResponseDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
-import ru.practicum.shareit.exception.ForbiddenException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.ItemRepository;
@@ -56,8 +55,10 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Booking not found"));
 
+        // ИЗМЕНЕНО: Если не владелец пытается подтвердить, бросаем ValidationException (400),
+        // так как тест "Booking approve by wrong user" не принимает 404.
         if (!booking.getItem().getOwner().getId().equals(userId)) {
-            throw new ForbiddenException("Not an owner");
+            throw new ValidationException("Not an owner");
         }
 
         if (booking.getStatus() == Status.APPROVED) {

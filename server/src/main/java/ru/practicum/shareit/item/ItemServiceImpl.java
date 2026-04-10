@@ -18,6 +18,7 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
+
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,11 +37,9 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto create(Long userId, ItemDto itemDto) {
         User owner = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
         Item item = ItemMapper.toItem(itemDto, owner);
-
         if (itemDto.getRequestId() != null) {
             item.setRequestId(itemDto.getRequestId());
         }
-
         return ItemMapper.toItemDto(itemRepository.save(item));
     }
 
@@ -95,10 +94,11 @@ public class ItemServiceImpl implements ItemService {
 
         List<Booking> userBookings = bookingRepository.findUserBookings(userId, Pageable.unpaged());
 
+
         boolean canComment = userBookings.stream()
                 .anyMatch(b -> b.getItem().getId().equals(itemId)
                         && b.getStatus() == Status.APPROVED
-                        && b.getEnd().isBefore(LocalDateTime.now()));
+                        && !b.getEnd().isAfter(LocalDateTime.now()));
 
         if (!canComment) throw new ValidationException("Ошибка валидации");
 

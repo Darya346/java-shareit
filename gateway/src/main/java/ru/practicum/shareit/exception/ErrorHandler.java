@@ -1,5 +1,6 @@
 package ru.practicum.shareit.exception;
 
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -16,10 +17,15 @@ public class ErrorHandler {
         return Map.of("error", "Ошибка валидации");
     }
 
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleConstraintViolation(final ConstraintViolationException e) {
+        return Map.of("error", e.getMessage());
+    }
+
     @ExceptionHandler(Throwable.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Map<String, String> handleThrowable(final Throwable e) {
         return Map.of("error", "Непредвиденная ошибка");
     }
-
 }
