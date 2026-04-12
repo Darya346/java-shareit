@@ -14,29 +14,30 @@ import ru.practicum.shareit.booking.dto.BookingDto;
 @Validated
 public class BookingController {
     private final BookingClient bookingClient;
+    private static final String USER_ID_HEADER = "X-Sharer-User-Id";
 
     @PostMapping
-    public ResponseEntity<Object> create(@RequestHeader("X-Sharer-User-Id") Long userId,
+    public ResponseEntity<Object> create(@RequestHeader(USER_ID_HEADER) Long userId,
                                          @Valid @RequestBody BookingDto bookingDto) {
         return bookingClient.create(userId, bookingDto);
     }
 
     @PatchMapping("/{bookingId}")
-    public ResponseEntity<Object> approve(@RequestHeader("X-Sharer-User-Id") Long userId,
+    public ResponseEntity<Object> approve(@RequestHeader(USER_ID_HEADER) Long userId,
                                           @PathVariable Long bookingId,
                                           @RequestParam boolean approved) {
         return bookingClient.approve(userId, bookingId, approved);
     }
 
     @GetMapping("/{bookingId}")
-    public ResponseEntity<Object> getById(@RequestHeader("X-Sharer-User-Id") Long userId,
+    public ResponseEntity<Object> getById(@RequestHeader(USER_ID_HEADER) Long userId,
                                           @PathVariable Long bookingId) {
         return bookingClient.getById(userId, bookingId);
     }
 
     @GetMapping
     public ResponseEntity<Object> getAllByBooker(
-            @RequestHeader("X-Sharer-User-Id") Long userId,
+            @RequestHeader(USER_ID_HEADER) Long userId,
             @RequestParam(name = "state", defaultValue = "ALL") String state,
             @RequestParam(name = "from", defaultValue = "0") Integer from,
             @RequestParam(name = "size", defaultValue = "10") Integer size) {
@@ -45,11 +46,10 @@ public class BookingController {
 
     @GetMapping("/owner")
     public ResponseEntity<Object> getAllByOwner(
-            @RequestHeader("X-Sharer-User-Id") Long userId,
+            @RequestHeader(USER_ID_HEADER) Long userId,
             @RequestParam(name = "state", defaultValue = "ALL") String state,
             @RequestParam(name = "from", defaultValue = "0") Integer from,
             @RequestParam(name = "size", defaultValue = "10") Integer size) {
         return bookingClient.getAllByOwner(userId, state, from, size);
     }
-
 }
